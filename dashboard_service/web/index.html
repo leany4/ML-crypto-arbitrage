@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070807">
+  <meta name="description" content="Мониторинг ML-моделей и paper-стратегий межбиржевого арбитража">
+  <title>Spread Control</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="window-controls" aria-hidden="true">
+        <span class="control red"></span>
+        <span class="control amber"></span>
+        <span class="control green"></span>
+      </div>
+      <div class="brand">
+        <strong>SPREAD CONTROL</strong>
+        <span class="muted">ML PAPER DESK</span>
+      </div>
+      <div class="top-stat">
+        <span>SESSION</span>
+        <strong id="session-clock">--:--:--</strong>
+      </div>
+      <div class="top-stat">
+        <span>MODE</span>
+        <strong class="paper">PAPER</strong>
+      </div>
+      <div id="connection" class="connection offline">
+        <i></i><span>CONNECTING</span>
+      </div>
+    </header>
+
+    <section class="summary-strip">
+      <div class="summary-cell">
+        <span>MONITORED</span><strong id="sum-pairs">0</strong>
+      </div>
+      <div class="summary-cell">
+        <span>ACTIVE STRATEGIES</span><strong id="sum-strategies">0</strong>
+      </div>
+      <div class="summary-cell">
+        <span>OPEN POSITIONS</span><strong id="sum-positions">0</strong>
+      </div>
+      <div class="summary-cell">
+        <span>TRADES</span><strong id="sum-trades">0</strong>
+      </div>
+      <div class="summary-cell pnl-cell">
+        <span>NET RESULT</span><strong id="sum-pnl">0.00 bps</strong>
+      </div>
+      <div class="summary-cell">
+        <span>STORE</span><strong id="sum-store">MEMORY</strong>
+      </div>
+    </section>
+
+    <main class="dashboard-grid">
+      <section class="panel pair-panel">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">LIVE UNIVERSE</span>
+            <h1>Monitored spreads</h1>
+          </div>
+          <span id="last-update" class="muted">waiting for feed</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table pair-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PAIR / ROUTE</th>
+                <th>EDGE</th>
+                <th>Q35</th>
+                <th>TRANSFORMER</th>
+                <th>RL</th>
+                <th>STATE</th>
+                <th>CONTEXT</th>
+              </tr>
+            </thead>
+            <tbody id="pair-rows">
+              <tr><td colspan="8" class="empty">No registered pairs</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="panel control-panel">
+        <div class="panel-head compact">
+          <div>
+            <span class="eyebrow">RUNTIME</span>
+            <h2>Model control</h2>
+          </div>
+        </div>
+        <div id="model-list" class="model-list"></div>
+        <div class="section-divider">
+          <span>EVENT FEED</span>
+          <span id="event-count">0 EVENTS</span>
+        </div>
+        <div id="event-feed" class="event-feed">
+          <div class="empty">No strategy events yet</div>
+        </div>
+      </aside>
+
+      <section class="panel chart-panel">
+        <div class="panel-head chart-head">
+          <div>
+            <span class="eyebrow">SELECTED PAIR</span>
+            <h2 id="chart-title">Choose a spread</h2>
+            <p id="chart-route" class="muted">The live edge will appear here.</p>
+          </div>
+          <div class="chart-current">
+            <span>LIVE EDGE</span>
+            <strong id="chart-edge">--</strong>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="spread-chart"></canvas>
+          <div class="chart-legend">
+            <span><i class="line edge"></i> executable edge</span>
+            <span><i class="marker entry"></i> entry</span>
+            <span><i class="marker exit"></i> exit</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel strategy-panel">
+        <div class="panel-head compact">
+          <div>
+            <span class="eyebrow">PAPER PORTFOLIOS</span>
+            <h2>Strategy efficiency</h2>
+          </div>
+          <span class="muted">independent $100 notionals</span>
+        </div>
+        <div id="strategy-grid" class="strategy-grid"></div>
+      </section>
+
+      <section class="panel trades-panel">
+        <div class="panel-head compact">
+          <div>
+            <span class="eyebrow">SESSION HISTORY</span>
+            <h2>Closed trades</h2>
+          </div>
+        </div>
+        <div class="table-wrap trades-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>TIME</th>
+                <th>PAIR</th>
+                <th>STRATEGY</th>
+                <th>HOLD</th>
+                <th>MFE / MAE</th>
+                <th>EXIT</th>
+                <th>NET</th>
+              </tr>
+            </thead>
+            <tbody id="trade-rows">
+              <tr><td colspan="7" class="empty">No closed trades in this run</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

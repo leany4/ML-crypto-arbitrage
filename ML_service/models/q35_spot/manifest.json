@@ -1,0 +1,12 @@
+{
+  "name": "q35_spot",
+  "kind": "q35",
+  "version": "q35-spot-full-sklearn-1.7.2",
+  "artifact": "model.joblib",
+  "pair_types": [
+    "spot_perp_same_exchange"
+  ],
+  "sklearn_version": "1.7.2",
+  "output": "watch_q35_bps",
+  "sha256": "7f1317dfe8fba72ac5d5381e812cab51293d19a710cc829928d0cc501eae0d4d"
+}

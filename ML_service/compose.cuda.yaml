@@ -1,0 +1,9 @@
+services:
+  ml-service:
+    build:
+      args:
+        TORCH_INDEX_URL: ""
+    environment:
+      ML_DEVICE: cuda
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+    gpus: all

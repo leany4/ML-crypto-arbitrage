@@ -1,0 +1,12 @@
+{
+  "name": "transformer",
+  "kind": "transformer",
+  "version": "gated-perp-ohlcv-v6",
+  "artifact": "multiscale_transformer_best.pt",
+  "scaler": "feature_scaler.npz",
+  "category_config": "category_config.json",
+  "model_config": "model_config.json",
+  "dataset_contract": "dataset_contract.json",
+  "pair_types": ["perp_perp_cross_exchange"]
+}
+

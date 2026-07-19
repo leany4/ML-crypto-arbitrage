@@ -1,0 +1,16 @@
+{
+  "name": "transformer",
+  "kind": "transformer",
+  "version": "gated-perp-ohlcv-entry-v6-full-epoch4",
+  "artifact": "multiscale_transformer_best.pt",
+  "scaler": "feature_scaler.npz",
+  "category_config": "category_config.json",
+  "model_config": "model_config.json",
+  "dataset_contract": "dataset_contract.json",
+  "pair_types": [
+    "perp_perp_cross_exchange"
+  ],
+  "checkpoint_epoch": 4,
+  "feature_count": 144,
+  "sha256": "c6c4a7e9c1a6167f2bd854b1f3aa820f70362558fb7a6a47b9ee96e2bf23c92f"
+}

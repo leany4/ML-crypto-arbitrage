@@ -1,0 +1,39 @@
+{
+  "run_mode": "full",
+  "model": "GatedPerpPerpCausalOHLCVTransformerV6",
+  "experiment": "fast L2 Transformer plus gated slow causal 5m OHLCV",
+  "l2_temporal_feature_count": 65,
+  "ohlcv_state_dim": 158,
+  "ohlcv_feature_count": 79,
+  "ohlcv_availability_rule": "candle_start_ts + 300000 <= decision_ts",
+  "entry_quantiles": [
+    0.2,
+    0.35,
+    0.5
+  ],
+  "entry_regression_mask": "current entry executable",
+  "wait_regression_mask": "future wait entry executable",
+  "advantage_regression_mask": "current and wait executable",
+  "entry_snapshot_features": [
+    "current_entry_executable",
+    "current_entry_fill_share",
+    "current_open_gross_edge_bps",
+    "current_open_edge_after_entry_fee_bps",
+    "current_entry_slippage_bps",
+    "current_instant_roundtrip_pnl_bps"
+  ],
+  "input_dim": 144,
+  "d_model": 96,
+  "heads": 4,
+  "layers_per_branch": 2,
+  "ff_dim": 256,
+  "dropout": 0.1,
+  "local_steps": 300,
+  "long_tokens": 600,
+  "long_stride": 10,
+  "target_scale_bps": 100.0,
+  "feature_clip": 10.0,
+  "transformer_checkpoint": "multiscale_transformer_best.pt",
+  "feature_scaler": "feature_scaler.npz",
+  "category_config": "category_config.json"
+}

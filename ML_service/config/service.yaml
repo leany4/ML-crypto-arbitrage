@@ -1,0 +1,27 @@
+service:
+  name: arb-ml-service
+  allowed_pair_types:
+    - perp_perp_cross_exchange
+  queue_max_pairs: 10000
+  l2_history_size: 4096
+  ohlcv_history_size: 128
+  # Transformer needs 5991 points: 600 long tokens with a 10-step stride.
+  pair_history_size: 8192
+  max_book_age_ms: 300
+  max_pair_skew_ms: 200
+  default_notional_usd: 100.0
+  min_fill_share: 0.95
+  fee_bps_per_leg_side: 10.0
+  required_timeframes:
+    - 1m
+    - 5m
+  ohlcv_provider:
+    mode: disabled
+    path: raw_last_3d/ohlcv_raw.parquet
+    history_size: 128
+    timeout_ms: 10000
+  paper_repository:
+    mode: memory
+    max_trades: 2000
+    max_decisions: 5000
+    max_events: 1000

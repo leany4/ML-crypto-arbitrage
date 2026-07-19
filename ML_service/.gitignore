@@ -1,0 +1,27 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+.coverage
+htmlcov/
+*.log
+.env
+state/
+raw_last_3d/
+simulator_state/
+tmp_*.py
+tmp_*/
+presentation/
+reports/
+/README.pdf
+/models/README.pdf
+# models/*/manifest.json
+# models/*/model.joblib
+# models/*/*.pt
+# models/*/*.zip
+# models/*/*.npz
+# models/*/category_config.json
+# models/*/model_config.json
+# models/*/dataset_contract.json

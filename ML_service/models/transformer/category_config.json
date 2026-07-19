@@ -1,0 +1,13 @@
+{
+  "exchange_to_id": {
+    "bitget": 1,
+    "gate": 2,
+    "htx": 3,
+    "mexc": 4
+  },
+  "pair_type_to_id": {
+    "perp_perp_cross_exchange": 1,
+    "spot_perp_same_exchange": 2
+  },
+  "pair_hash_buckets": 512
+}

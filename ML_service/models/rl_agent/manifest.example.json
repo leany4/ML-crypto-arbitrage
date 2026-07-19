@@ -1,0 +1,27 @@
+{
+  "name": "rl_agent",
+  "kind": "rl",
+  "version": "replace-me",
+  "loader": "torch_r2d2",
+  "algorithm": "recurrent_double_dqn",
+  "artifact": "lstm_r2d2.pt",
+  "scaler": "feature_scaler.joblib",
+  "pair_types": [
+    "perp_perp_cross_exchange",
+    "spot_perp_same_exchange"
+  ],
+  "decision_ms": 100,
+  "execution_delay_ms": 100,
+  "burn_in_steps": 1200,
+  "min_hold_steps": 10,
+  "cooldown_steps": 100,
+  "max_session_steps": 18000,
+  "max_state_gap_ms": 2000,
+  "q35_gate_bps": 30.0,
+  "actions": {
+    "0": "WAIT",
+    "1": "ENTER",
+    "2": "HOLD",
+    "3": "EXIT"
+  }
+}

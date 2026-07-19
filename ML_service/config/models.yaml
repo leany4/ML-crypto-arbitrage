@@ -1,0 +1,28 @@
+models:
+  q35_perp:
+    kind: q35
+    enabled: true
+    required: false
+    bundle_dir: q35_perp
+    device: cpu
+
+  q35_spot:
+    kind: q35
+    enabled: false
+    required: false
+    bundle_dir: q35_spot
+    device: cpu
+
+  transformer:
+    kind: transformer
+    enabled: true
+    required: false
+    bundle_dir: transformer
+    device: auto
+
+  rl_agent:
+    kind: rl
+    enabled: true
+    required: false
+    bundle_dir: rl_agent
+    device: auto

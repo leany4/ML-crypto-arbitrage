@@ -1,0 +1,29 @@
+{
+  "model": "q35-gated LSTM stable recurrent Double-DQN fine-tune",
+  "checkpoint": "lstm_r2d2.pt",
+  "q35_gate_bps": 30.0,
+  "decision_ms": 100,
+  "execution_delay_ms": 100,
+  "validation": {
+    "windows": 263,
+    "traded_window_rate": 0.6539923954372624,
+    "trades": 400,
+    "total_net_pnl_bps": 6959.4672099538475,
+    "mean_window_pnl_bps": 26.461852509330217,
+    "mean_trade_pnl_bps": 17.398668024884618,
+    "median_trade_pnl_bps": -10.094538074968543,
+    "trade_win_rate": 0.435,
+    "max_drawdown_bps": -4531.216270884437
+  },
+  "test": {
+    "windows": 213,
+    "traded_window_rate": 0.6197183098591549,
+    "trades": 241,
+    "total_net_pnl_bps": 10090.356139916126,
+    "mean_window_pnl_bps": 47.37256403716491,
+    "mean_trade_pnl_bps": 41.86869767600052,
+    "median_trade_pnl_bps": 17.602647479935513,
+    "trade_win_rate": 0.5892116182572614,
+    "max_drawdown_bps": -1985.357098579202
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "q35_perp",
+  "kind": "q35",
+  "version": "q35-perp-full-sklearn-1.7.2",
+  "artifact": "model.joblib",
+  "pair_types": [
+    "perp_perp_cross_exchange"
+  ],
+  "sklearn_version": "1.7.2",
+  "output": "watch_q35_bps",
+  "sha256": "69bd12d766af6790ff93d06ebc24b82965e757a545f798ac0e7d5f37e6516c89"
+}

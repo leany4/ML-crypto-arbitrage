@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arb-ml-service"
+version = "0.1.0"
+description = "Online inference and paper-trading service for arbitrage ML models"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30,<1",
+    "pydantic>=2.9,<3",
+    "PyYAML>=6,<7",
+    "numpy>=1.26,<2.3",
+    "pandas>=2.2,<3",
+    "polars>=1.30,<2",
+    "joblib>=1.4,<2",
+    "scikit-learn==1.7.2",
+    "prometheus-client>=0.21,<1",
+    "ccxt>=4.4,<5",
+]
+
+[project.optional-dependencies]
+torch = ["torch>=2.2,<3"]
+rl = ["torch>=2.2,<3"]
+dev = ["pytest>=8,<9", "httpx>=0.27,<1", "ruff>=0.8,<1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that load real model artifacts",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
