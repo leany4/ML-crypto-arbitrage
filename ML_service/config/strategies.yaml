@@ -1,6 +1,6 @@
 strategies:
   q35_baseline:
-    enabled: true
+    enabled: false
     pair_types:
       - perp_perp_cross_exchange
     opportunity_source: q35_perp.watch_q35_bps
@@ -16,7 +16,7 @@ strategies:
     notional_usd: 100.0
 
   transformer_full:
-    enabled: false
+    enabled: true
     pair_types:
       - perp_perp_cross_exchange
     opportunity_source: transformer.watch_q35_bps
@@ -32,11 +32,11 @@ strategies:
     notional_usd: 100.0
 
   hybrid_q35_transformer:
-    enabled: false
+    enabled: true
     pair_types:
       - perp_perp_cross_exchange
     opportunity_source: q35_perp.watch_q35_bps
-    opportunity_min_bps: 70.0
+    opportunity_min_bps: 30.0
     entry_probability_source: transformer.enter_probability
     entry_probability_min: 0.70
     entry_executable_source: transformer.entry_executable_probability
@@ -51,8 +51,28 @@ strategies:
     execution_delay_ms: 100
     notional_usd: 100.0
 
-  rl_paper:
+  hybrid_q35_transformer_rl:
     enabled: true
+    pair_types:
+      - perp_perp_cross_exchange
+    opportunity_source: q35_perp.watch_q35_bps
+    opportunity_min_bps: 30.0
+    entry_probability_source: transformer.enter_probability
+    entry_probability_min: 0.70
+    entry_executable_source: transformer.entry_executable_probability
+    entry_executable_min: 0.80
+    enter_advantage_source: transformer.enter_advantage_q35_bps
+    enter_advantage_min_bps: 0.0
+    exit_action_source: rl_agent.action
+    emergency_stop_bps: -300.0
+    cooldown_steps: 100
+    session_reset_ms: 1800000
+    max_hold_ms: 1800000
+    execution_delay_ms: 100
+    notional_usd: 100.0
+
+  rl_paper:
+    enabled: false
     pair_types:
       - perp_perp_cross_exchange
     gate_sources:

@@ -390,7 +390,9 @@ class PaperEngine:
     def _should_enter(
         self, values: dict[str, Any], predictions: dict[str, Any]
     ) -> tuple[bool, str]:
-        action_source = values.get("action_source")
+        action_source = values.get("entry_action_source") or values.get(
+            "action_source"
+        )
         if action_source:
             action = _source_value(action_source, predictions)
             return action == 1.0, f"rl_action={action}"
@@ -432,7 +434,9 @@ class PaperEngine:
         position: PaperPosition,
         snapshot: PairSnapshot,
     ) -> tuple[bool, str]:
-        action_source = values.get("action_source")
+        action_source = values.get("exit_action_source") or values.get(
+            "action_source"
+        )
         if action_source:
             action = _source_value(action_source, predictions)
             if action == 3.0:

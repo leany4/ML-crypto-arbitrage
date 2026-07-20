@@ -172,13 +172,21 @@ Q35-модель всегда выполняется на CPU.
 
 ## Исторический replay
 
-Большие рыночные данные намеренно не хранятся в репозитории. Для replay
-положите файлы:
+В репозитории через Git LFS хранится причинный трёхдневный test replay. После
+клонирования загрузите LFS-объекты:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+Данные будут доступны по путям:
 
 ```text
-ML_service/raw_last_3d/
+ML_service/market_replay_data/raw_last_3d/
 ├── l2_raw.parquet
-└── ohlcv_raw.parquet
+├── ohlcv_raw.parquet
+└── manifest.json
 ```
 
 Подготовьте компактный участок рынка:

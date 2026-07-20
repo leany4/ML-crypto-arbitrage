@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
+
 from ml_service.predictors.base import PredictionContext
 from ml_service.predictors.rl import ACTION_NAMES, RLPredictor
 
@@ -45,3 +47,22 @@ def test_recurrent_action_order_is_wait_enter_hold_exit(tmp_path: Path) -> None:
     assert predictor._action_mask(
         open_exit_allowed, gate_active=True
     ).tolist() == [False, False, True, True]
+
+
+def test_rl_missing_feature_is_zero_after_normalization(tmp_path: Path) -> None:
+    predictor = RLPredictor("agent", tmp_path, "cpu")
+    predictor.feature_columns = ["missing_value", "finite_value"]
+    predictor.feature_mean = np.asarray([10.0, 10.0], dtype=np.float32)
+    predictor.feature_std = np.asarray([2.0, 2.0], dtype=np.float32)
+
+    row = predictor._feature_row(
+        {"missing_value": np.nan, "finite_value": 12.0},
+        q35_bps=30.0,
+        time_from_gate_sec=0.0,
+        active=True,
+    )
+
+    np.testing.assert_array_equal(
+        row,
+        np.asarray([0.0, 1.0], dtype=np.float32),
+    )

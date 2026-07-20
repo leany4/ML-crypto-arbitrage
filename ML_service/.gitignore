@@ -9,7 +9,7 @@ htmlcov/
 *.log
 .env
 state/
-raw_last_3d/
+/raw_last_3d/
 simulator_state/
 tmp_*.py
 tmp_*/

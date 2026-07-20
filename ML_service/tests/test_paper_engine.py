@@ -135,3 +135,59 @@ def test_rl_actions_and_fill_order_match_training_contract(
     assert trades[0]["closed_ts"] == 1300
     assert trades[0]["hold_ms"] == 200
     repository.close()
+
+
+def test_transformer_entry_and_rl_exit_can_be_composed(
+    tmp_path: Path,
+) -> None:
+    repository = PaperRepository(tmp_path / "hybrid-paper.sqlite3")
+    strategy = StrategySettings(
+        name="hybrid",
+        enabled=True,
+        values={
+            "opportunity_source": "q35.watch_q35_bps",
+            "opportunity_min_bps": 70.0,
+            "entry_probability_source": "transformer.enter_probability",
+            "entry_probability_min": 0.70,
+            "exit_action_source": "agent.action",
+            "max_hold_ms": 300_000,
+            "execution_delay_ms": 100,
+            "notional_usd": 100.0,
+        },
+    )
+    engine = PaperEngine(repository, {"hybrid": strategy})
+    pair = PairDefinition(
+        pair_id="BTC",
+        base_ticker="BTC",
+        pair_type="perp_perp_cross_exchange",
+        leg1=MarketRef(exchange="a", ticker="BTC", is_perp=True),
+        leg2=MarketRef(exchange="b", ticker="BTC", is_perp=True),
+    )
+
+    enter = {
+        "q35": {"watch_q35_bps": 100.0},
+        "transformer": {"enter_probability": 0.90},
+        "agent": {"action": 0},
+    }
+    engine.evaluate("hybrid", snapshot(pair, 1000, 100.0, 101.0), enter)
+    engine.advance("hybrid", snapshot(pair, 1100, 100.0, 101.0))
+    assert engine.position("hybrid", pair.pair_id) is not None
+
+    hold = {
+        "q35": {"watch_q35_bps": 100.0},
+        "transformer": {"enter_probability": 0.90},
+        "agent": {"action": 2},
+    }
+    engine.evaluate("hybrid", snapshot(pair, 1100, 100.0, 101.0), hold)
+    assert engine.position("hybrid", pair.pair_id) is not None
+
+    exit_now = {
+        "q35": {"watch_q35_bps": 100.0},
+        "transformer": {"enter_probability": 0.10},
+        "agent": {"action": 3},
+    }
+    engine.evaluate("hybrid", snapshot(pair, 1200, 100.0, 101.0), exit_now)
+    engine.advance("hybrid", snapshot(pair, 1300, 100.0, 101.0))
+    assert engine.position("hybrid", pair.pair_id) is None
+    assert len(repository.trades()) == 1
+    repository.close()

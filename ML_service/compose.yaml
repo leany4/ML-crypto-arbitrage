@@ -18,7 +18,7 @@ services:
       - ./config:/app/config:ro
       - ./models:/models:ro
       - ./state:/state
-      - ./raw_last_3d:/replay:ro
+      - ./market_replay_data/raw_last_3d:/replay:ro
     stop_grace_period: 30s
 
   market-simulator:
@@ -36,7 +36,7 @@ services:
     ports:
       - "${SIM_PORT:-8090}:8090"
     volumes:
-      - ./raw_last_3d:/data:ro
+      - ./market_replay_data/raw_last_3d:/data:ro
       - ./simulator_state:/prepared
     depends_on:
       ml-service:

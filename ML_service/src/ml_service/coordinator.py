@@ -195,14 +195,24 @@ class InferenceCoordinator:
                         "_latency_ms": prediction.latency_ms,
                     }
                 except Exception as error:
-                    MODEL_ERRORS.labels(model=model_name).inc()
-                    LOGGER.debug(
-                        "Prediction skipped model=%s pair=%s: %s",
-                        model_name,
-                        pair_id,
-                        error,
+                    message = str(error)
+                    transformer_warmup = (
+                        model_kind == "transformer"
+                        and message.startswith(
+                            "Transformer history is not ready:"
+                        )
                     )
-                    values = {"_error": str(error)}
+                    if transformer_warmup:
+                        values = {"_waiting": message}
+                    else:
+                        MODEL_ERRORS.labels(model=model_name).inc()
+                        LOGGER.debug(
+                            "Prediction skipped model=%s pair=%s: %s",
+                            model_name,
+                            pair_id,
+                            error,
+                        )
+                        values = {"_error": message}
                 prediction_cache[cache_key] = values
                 predictions[model_name] = values
             self.paper.evaluate(strategy_name, snapshot, predictions)

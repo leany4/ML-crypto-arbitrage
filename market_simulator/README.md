@@ -17,8 +17,8 @@ ML-контура.
 
 ```bash
 python -m market_simulator.prepare \
-  --l2 ../ML_service/raw_last_3d/l2_raw.parquet \
-  --ohlcv ../ML_service/raw_last_3d/ohlcv_raw.parquet \
+  --l2 ../ML_service/market_replay_data/raw_last_3d/l2_raw.parquet \
+  --ohlcv ../ML_service/market_replay_data/raw_last_3d/ohlcv_raw.parquet \
   --output ../ML_service/simulator_state \
   --max-pairs 8 \
   --min-concurrent-seconds 900 \
@@ -83,7 +83,7 @@ Swagger UI: [http://localhost:8090/docs](http://localhost:8090/docs).
 
 | Переменная | Значение по умолчанию |
 |---|---|
-| `SIM_DATA_DIR` | `../ML_service/raw_last_3d` |
+| `SIM_DATA_DIR` | `../ML_service/market_replay_data/raw_last_3d` |
 | `SIM_PREPARED_DIR` | `state/prepared` |
 | `SIM_ML_URL` | `http://127.0.0.1:8080` |
 | `SIM_DEFAULT_SPEED` | `1` |
@@ -98,4 +98,3 @@ python -m pytest -q
 
 Тесты проверяют выбор непрерывного интервала, оба направления пары, causal
 OHLCV warm-up, паузу/возобновление и отправку 100-мс batch-событий.
-

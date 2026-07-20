@@ -219,7 +219,7 @@ class RLPredictor(Predictor):
 
         if self.model is None or self.torch is None:
             return
-        with self.torch.inference_mode():
+        with self.torch.no_grad():
             dummy = self.torch.zeros(
                 (1, 1, self.obs_dim),
                 dtype=self.torch.float32,
@@ -265,8 +265,13 @@ class RLPredictor(Predictor):
             ],
             dtype=np.float32,
         )
-        values = np.nan_to_num(values, nan=0.0, posinf=0.0, neginf=0.0)
-        return (values - self.feature_mean) / self.feature_std
+        normalized = (values - self.feature_mean) / self.feature_std
+        return np.nan_to_num(
+            normalized,
+            nan=0.0,
+            posinf=20.0,
+            neginf=-20.0,
+        )
 
     def _observation(
         self,
@@ -383,7 +388,8 @@ class RLPredictor(Predictor):
         manual = list(context.position_state or [0.0] * MANUAL_STATE_SIZE)
         position_open = manual[0] > 0.5
 
-        with self._lock, self.torch.inference_mode():
+        # Match the no_grad execution contract used to validate the checkpoint.
+        with self._lock, self.torch.no_grad():
             state = self._states.setdefault(key, RecurrentPairState())
             if state.last_grid_ts == grid_ts and state.last_outputs is not None:
                 return self._prediction(dict(state.last_outputs), started, heads)

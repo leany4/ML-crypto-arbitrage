@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 import time
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +38,11 @@ class TransformerPredictor(Predictor):
         self.model_config: dict[str, Any] = {}
         self.feature_mean = np.empty(0, dtype=np.float32)
         self.feature_std = np.empty(0, dtype=np.float32)
+        self._history_cache: OrderedDict[
+            str, tuple[np.ndarray, np.ndarray]
+        ] = OrderedDict()
+        self._history_cache_lock = threading.RLock()
+        self._history_cache_limit = 128
 
     def load(self) -> None:
         """Проверить bundle-контракт, загрузить scaler, конфиг и checkpoint."""
@@ -122,10 +129,33 @@ class TransformerPredictor(Predictor):
             )
 
         rows = context.history[-needed:]
+        cache_key = context.pair_id or str(rows[-1].get("pair_id", ""))
+        history_timestamps = (
+            np.asarray(context.history_timestamps[-needed:], dtype=np.int64)
+            if len(context.history_timestamps) >= needed
+            else None
+        )
+        cache_hit = False
+        if cache_key and history_timestamps is not None:
+            with self._history_cache_lock:
+                cached = self._history_cache.get(cache_key)
+                if cached is not None:
+                    cached_timestamps, _ = cached
+                    cache_hit = np.array_equal(
+                        cached_timestamps, history_timestamps
+                    ) or (
+                        len(cached_timestamps) == len(history_timestamps)
+                        and np.array_equal(
+                            cached_timestamps[1:], history_timestamps[:-1]
+                        )
+                    )
+
+        # Cached rows were validated during their first full conversion.
+        rows_to_validate = rows[-1:] if cache_hit else rows
         missing = sorted(
             {
                 column
-                for row in rows
+                for row in rows_to_validate
                 for column in feature_columns
                 if column not in row
             }
@@ -135,25 +165,94 @@ class TransformerPredictor(Predictor):
                 f"Transformer missing {len(missing)} contract features: "
                 + ", ".join(missing[:8])
             )
-        matrix = np.asarray(
-            [[row[column] for column in feature_columns] for row in rows],
-            dtype=np.float32,
-        )
-        matrix = np.nan_to_num(matrix, nan=0.0, posinf=0.0, neginf=0.0)
-        clip = float(self.model_config.get("feature_clip", 10.0))
-        matrix = np.clip(
-            (matrix - self.feature_mean) / self.feature_std, -clip, clip
-        )
         feature_index = {name: index for index, name in enumerate(feature_columns)}
-        l2_indices = [feature_index[name] for name in l2_columns]
-        ohlcv_indices = [feature_index[name] for name in ohlcv_columns]
+        l2_indices = np.asarray(
+            [feature_index[name] for name in l2_columns], dtype=np.int64
+        )
+        ohlcv_indices = np.asarray(
+            [feature_index[name] for name in ohlcv_columns], dtype=np.int64
+        )
+        clip = float(self.model_config.get("feature_clip", 10.0))
+        l2_mean = self.feature_mean[l2_indices]
+        l2_std = self.feature_std[l2_indices]
+
+        def scaled_row(row: dict[str, Any]) -> np.ndarray:
+            values = np.asarray(
+                [row[column] for column in l2_columns], dtype=np.float32
+            )
+            values = np.nan_to_num(
+                values, nan=0.0, posinf=0.0, neginf=0.0
+            )
+            return np.clip((values - l2_mean) / l2_std, -clip, clip)
+
+        l2_matrix: np.ndarray | None = None
+        if cache_key and history_timestamps is not None:
+            with self._history_cache_lock:
+                cached = self._history_cache.get(cache_key)
+                if cached is not None:
+                    cached_timestamps, cached_matrix = cached
+                    if np.array_equal(cached_timestamps, history_timestamps):
+                        cached_matrix[-1] = scaled_row(rows[-1])
+                        l2_matrix = cached_matrix
+                    elif (
+                        len(cached_timestamps) == len(history_timestamps)
+                        and np.array_equal(
+                            cached_timestamps[1:], history_timestamps[:-1]
+                        )
+                    ):
+                        cached_matrix[:-1] = cached_matrix[1:].copy()
+                        cached_matrix[-1] = scaled_row(rows[-1])
+                        cached_timestamps[:-1] = cached_timestamps[1:]
+                        cached_timestamps[-1] = history_timestamps[-1]
+                        l2_matrix = cached_matrix
+                    if l2_matrix is not None:
+                        self._history_cache.move_to_end(cache_key)
+
+        if l2_matrix is None:
+            l2_matrix = np.asarray(
+                [[row[column] for column in l2_columns] for row in rows],
+                dtype=np.float32,
+            )
+            l2_matrix = np.nan_to_num(
+                l2_matrix, nan=0.0, posinf=0.0, neginf=0.0
+            )
+            l2_matrix = np.clip(
+                (l2_matrix - l2_mean) / l2_std,
+                -clip,
+                clip,
+            )
+            if cache_key and history_timestamps is not None:
+                with self._history_cache_lock:
+                    self._history_cache[cache_key] = (
+                        history_timestamps.copy(),
+                        l2_matrix,
+                    )
+                    self._history_cache.move_to_end(cache_key)
+                    while len(self._history_cache) > self._history_cache_limit:
+                        self._history_cache.popitem(last=False)
         long_indices = np.arange(
-            len(matrix) - 1 - (long_tokens - 1) * stride,
-            len(matrix),
+            len(l2_matrix) - 1 - (long_tokens - 1) * stride,
+            len(l2_matrix),
             stride,
             dtype=np.int64,
         )
         current = rows[-1]
+        ohlcv_matrix = np.asarray(
+            [
+                [rows[int(long_indices[0])][column] for column in ohlcv_columns],
+                [current[column] for column in ohlcv_columns],
+            ],
+            dtype=np.float32,
+        )
+        ohlcv_matrix = np.nan_to_num(
+            ohlcv_matrix, nan=0.0, posinf=0.0, neginf=0.0
+        )
+        ohlcv_matrix = np.clip(
+            (ohlcv_matrix - self.feature_mean[ohlcv_indices])
+            / self.feature_std[ohlcv_indices],
+            -clip,
+            clip,
+        )
         exchange_to_id = self.category_config["exchange_to_id"]
         pair_type_to_id = self.category_config["pair_type_to_id"]
         pair_buckets = int(self.category_config["pair_hash_buckets"])
@@ -162,8 +261,8 @@ class TransformerPredictor(Predictor):
             int(hashlib.sha1(pair_id.encode("utf-8")).hexdigest()[:8], 16)
             % pair_buckets
         )
-        ohlcv_current = matrix[-1, ohlcv_indices]
-        ohlcv_change = ohlcv_current - matrix[long_indices[0], ohlcv_indices]
+        ohlcv_current = ohlcv_matrix[1]
+        ohlcv_change = ohlcv_current - ohlcv_matrix[0]
         position_state = context.position_state or [0.0] * 6
         entry_snapshot = (
             [0.0] * 6
@@ -171,8 +270,8 @@ class TransformerPredictor(Predictor):
             else (context.entry_snapshot or self._entry_snapshot(current))
         )
         return {
-            "local": matrix[-local_steps:, l2_indices],
-            "long": matrix[long_indices][:, l2_indices],
+            "local": l2_matrix[-local_steps:].copy(),
+            "long": l2_matrix[long_indices],
             "ohlcv_state": np.concatenate([ohlcv_current, ohlcv_change]),
             "position_state": position_state,
             "entry_snapshot": entry_snapshot,
@@ -186,6 +285,37 @@ class TransformerPredictor(Predictor):
             ),
             "pair_hash_id": pair_hash,
         }
+
+    def warmup(self) -> None:
+        """Прогреть CUDA kernels на настоящих serving-размерах."""
+
+        if self.model is None:
+            raise RuntimeError(f"{self.name} is not loaded")
+        l2_dim = len(self.contract["l2_feature_columns"])
+        ohlcv_dim = 2 * len(self.contract["ohlcv_feature_columns"])
+        values = {
+            "local": np.zeros(
+                (int(self.contract["local_history_steps"]), l2_dim),
+                dtype=np.float32,
+            ),
+            "long": np.zeros(
+                (int(self.contract["long_history_tokens"]), l2_dim),
+                dtype=np.float32,
+            ),
+            "ohlcv_state": np.zeros(ohlcv_dim, dtype=np.float32),
+            "position_state": np.zeros(6, dtype=np.float32),
+            "entry_snapshot": np.zeros(6, dtype=np.float32),
+            "pair_type_id": 0,
+            "direction_id": 0,
+            "leg1_exchange_id": 0,
+            "leg2_exchange_id": 0,
+            "pair_hash_id": 0,
+        }
+        context = PredictionContext(features={}, transformer_input=values)
+        for _ in range(3):
+            self.predict(context)
+        if self.device == "cuda":
+            torch.cuda.synchronize()
 
     @staticmethod
     def _entry_snapshot(features: dict[str, Any]) -> list[float]:
@@ -270,5 +400,7 @@ class TransformerPredictor(Predictor):
         """Освободить модель и очистить неиспользуемый CUDA cache."""
 
         self.model = None
+        with self._history_cache_lock:
+            self._history_cache.clear()
         if self.device == "cuda" and torch.cuda.is_available():
             torch.cuda.empty_cache()

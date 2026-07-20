@@ -1,0 +1,17 @@
+{
+  "l2_source": "data/full_export_L2.parquet",
+  "ohlcv_source": "/home/space/leanya/some/scripts_l2_ohlcv_prep/data/OHLCV.csv",
+  "days": 3,
+  "start_ts": 1783326183780,
+  "end_ts": 1783585383780,
+  "start_utc": "2026-07-06T08:23:03.780000+00:00",
+  "end_utc": "2026-07-09T08:23:03.780000+00:00",
+  "l2_file": "l2_raw.parquet",
+  "l2_rows": 47880093,
+  "l2_markets": 322,
+  "ohlcv_file": "ohlcv_raw.parquet",
+  "ohlcv_warmup_hours": 6,
+  "new_deduplication_applied": false,
+  "resampling_applied": false,
+  "all_l2_source_columns_preserved": true
+}

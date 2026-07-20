@@ -27,6 +27,7 @@ RUN pip install --upgrade pip \
 
 COPY src ./src
 COPY config ./config
+COPY scripts ./scripts
 COPY models ./models-example
 COPY README.md ./
 

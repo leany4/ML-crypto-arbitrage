@@ -99,6 +99,7 @@ def _decision_view(row: dict[str, Any]) -> dict[str, Any]:
                 "_latency_ms",
                 "_device",
                 "_error",
+                "_waiting",
             }
         }
     return {
